@@ -29,7 +29,7 @@ abstract class CmeClient
 
   /**
    * @param string $endPoint
-   * @param array $data
+   * @param array  $data
    *
    * @return mixed
    * @throws \Exception
@@ -48,15 +48,21 @@ abstract class CmeClient
       [],
       $data
     );
-
     $response = json_decode($response->body);
-    if($response->status == 'success')
+    if($response)
     {
-      return $response->result;
+      if($response->status == 'success')
+      {
+        return $response->result;
+      }
+      else
+      {
+        throw new \Exception($response->error);
+      }
     }
     else
     {
-      throw new \Exception($response->error);
+      throw new \Exception("Invalid Response. API might have thrown a 500");
     }
   }
 }
