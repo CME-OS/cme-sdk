@@ -8,13 +8,20 @@
  */
 namespace Cme\Sdk;
 
-use CmeKernel\Data\CampaignData;
+use CmeData\CampaignData;
 
 class CmeCampaign
 {
 
-  public function exists($id)
+  /**
+   * @param $id
+   *
+   * @return mixed
+   * @throws \Exception
+   */
+  public static function exists($id)
   {
+    return CmeClient::makeRequest('campaign/exists', ['id' => $id]);
   }
 
   /**
@@ -22,9 +29,10 @@ class CmeCampaign
    *
    * @return CampaignData | bool
    */
-  public function get($id)
+  public static function get($id)
   {
-
+    $result = CmeClient::makeRequest('campaign/get', ['id' => $id]);
+    return CampaignData::hydrate((array)$result->campaign);
   }
 
   /**
@@ -32,8 +40,19 @@ class CmeCampaign
    *
    * @return CampaignData[];
    */
-  public function all($includeDeleted = false)
+  public static function all($includeDeleted = false)
   {
+    $result = CmeClient::makeRequest(
+      'campaign/all',
+      ['include_deleted' => $includeDeleted]
+    );
+
+    $return = [];
+    foreach($result->campaigns as $campaign)
+    {
+      $return[] = CampaignData::hydrate((array)$campaign);
+    }
+    return $return;
   }
 
   /**
@@ -44,8 +63,12 @@ class CmeCampaign
    *
    * @return mixed
    */
-  public function getRecipientCount($id, $listId)
+  public static function getRecipientCount($id, $listId)
   {
+    return CmeClient::makeRequest(
+      'campaign/recipient_count',
+      ['id' => $id, 'list_id' => $listId]
+    );
   }
 
   /**
@@ -53,8 +76,10 @@ class CmeCampaign
    *
    * @return bool
    */
-  public function create(CampaignData $data)
+  public static function create(CampaignData $data)
   {
+    $result = CmeClient::makeRequest('campaign/create', $data->toArray());
+    return $result->campaignId;
   }
 
   /**
@@ -62,17 +87,22 @@ class CmeCampaign
    *
    * @return bool
    */
-  public function update(CampaignData $data)
+  public static function update(CampaignData $data)
   {
+    return CmeClient::makeRequest('campaign/update', $data->toArray());
   }
 
   /**
-   * Duplicate or copies a campaign to ease campaign creation.
+   * Duplicates or copies a campaign to ease campaign creation.
    *
    * @param $id
+   *
+   * @return mixed
+   * @throws \Exception
    */
-  public function copy($id)
+  public static function copy($id)
   {
+    return CmeClient::makeRequest('campaign/copy', $id);
   }
 
   /**
@@ -80,8 +110,9 @@ class CmeCampaign
    *
    * @return bool
    */
-  public function delete($id)
+  public static function delete($id)
   {
+    return CmeClient::makeRequest('campaign/delete', ['id' => $id]);
   }
 
   /**
@@ -89,8 +120,9 @@ class CmeCampaign
    *
    * @return bool
    */
-  public function queue($id)
+  public static function queue($id)
   {
+    return CmeClient::makeRequest('campaign/queue', ['id' => $id]);
   }
 
   /**
@@ -98,8 +130,9 @@ class CmeCampaign
    *
    * @return bool
    */
-  public function pause($id)
+  public static function pause($id)
   {
+    return CmeClient::makeRequest('campaign/pause', ['id' => $id]);
   }
 
   /**
@@ -107,8 +140,9 @@ class CmeCampaign
    *
    * @return bool
    */
-  public function resume($id)
+  public static function resume($id)
   {
+    return CmeClient::makeRequest('campaign/resume', ['id' => $id]);
   }
 
   /**
@@ -116,7 +150,8 @@ class CmeCampaign
    *
    * @return bool
    */
-  public function abort($id)
+  public static function abort($id)
   {
+    return CmeClient::makeRequest('campaign/abort', ['id' => $id]);
   }
 }

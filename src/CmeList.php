@@ -5,16 +5,16 @@
 
 namespace Cme\Sdk;
 
-//use CmeKernel\Data\CampaignData;
-//use CmeKernel\Data\ListImportQueueData;
-//use CmeKernel\Data\ListData;
-//use CmeKernel\Data\SubscriberData;
+use CmeData\CampaignData;
+use CmeData\ListImportQueueData;
+use CmeData\ListData;
+use CmeData\SubscriberData;
 
 class CmeList
 {
-
-  public function exists($id)
+  public static function exists($id)
   {
+    return CmeClient::makeRequest('list/exists', ['id' => $id]);
   }
 
   /**
@@ -22,9 +22,10 @@ class CmeList
    *
    * @return bool| ListData
    */
-  public function get($id)
+  public static function get($id)
   {
-    return CmeClient::makeRequest('list/get', ['id' => $id]);
+    $result = CmeClient::makeRequest('list/get', ['id' => $id]);
+    return ListData::hydrate((array)$result->list);
   }
 
   /**
@@ -32,16 +33,19 @@ class CmeList
    *
    * @return ListData[];
    */
-  public function all($includeDeleted = false)
+  public static function all($includeDeleted = false)
   {
-  }
+    $result = CmeClient::makeRequest(
+      'list/all',
+      ['include_deleted' => $includeDeleted]
+    );
 
-  /**
-   * @return ListData;
-   * @throws \Exception
-   */
-  public function any()
-  {
+    $return = [];
+    foreach($result->lists as $list)
+    {
+      $return[] = ListData::hydrate((array)$list);
+    }
+    return $return;
   }
 
   /**
@@ -49,8 +53,10 @@ class CmeList
    *
    * @return bool|int $id
    */
-  public function create(ListData $data)
+  public static function create(ListData $data)
   {
+    $result = CmeClient::makeRequest('list/create', $data->toArray());
+    return $result->listId;
   }
 
   /**
@@ -58,8 +64,9 @@ class CmeList
    *
    * @return bool
    */
-  public function update(ListData $data)
+  public static function update(ListData $data)
   {
+    return CmeClient::makeRequest('list/update', $data->toArray());
   }
 
   /**
@@ -67,8 +74,9 @@ class CmeList
    *
    * @return bool
    */
-  public function delete($id)
+  public static function delete($id)
   {
+    return CmeClient::makeRequest('list/delete', ['id' => $id]);
   }
 
   /**
@@ -78,8 +86,16 @@ class CmeList
    *
    * @return SubscriberData[]
    */
-  public function getSubscribers($listId, $offset = 0, $limit = 1000)
+  public static function getSubscribers($listId, $offset = 0, $limit = 1000)
   {
+    $data   = ['id' => $listId, 'offset' => $offset, 'limit' => $limit];
+    $result = CmeClient::makeRequest('list/get_subscribers', $data);
+    $return = [];
+    foreach($result->subscribers as $subscriber)
+    {
+      $return[] = SubscriberData::hydrate((array)$subscriber);
+    }
+    return $return;
   }
 
   /**
@@ -88,8 +104,11 @@ class CmeList
    *
    * @return bool|SubscriberData
    */
-  public function getSubscriber($subscriberId, $listId)
+  public static function getSubscriber($subscriberId, $listId)
   {
+    $data   = ['subscriber_id' => $subscriberId, 'id' => $listId];
+    $result = CmeClient::makeRequest('list/get_subscriber', $data);
+    return SubscriberData::hydrate((array)$result->subscriber);
   }
 
   /**
@@ -98,8 +117,11 @@ class CmeList
    *
    * @return bool
    */
-  public function addSubscriber(SubscriberData $data, $listId)
+  public static function addSubscriber(SubscriberData $data, $listId)
   {
+    $data       = $data->toArray();
+    $data['id'] = $listId;
+    return CmeClient::makeRequest('list/add_subscriber', $data);
   }
 
   /**
@@ -108,16 +130,18 @@ class CmeList
    *
    * @return mixed
    */
-  public function deleteSubscriber($subscriberId, $listId)
+  public static function deleteSubscriber($subscriberId, $listId)
   {
+    $data = ['subscriber_id' => $subscriberId, 'id' => $listId];
+    return CmeClient::makeRequest('list/delete_subscriber', $data);
   }
 
-  public function getColumns($listId)
+  /**
+   * @param ListImportQueueData $data
+   */
+  public static function import(ListImportQueueData $data)
   {
-  }
-
-  public function import(ListImportQueueData $data)
-  {
+    //TODO NOT SUPPORTED BY API YET
   }
 
 
@@ -126,7 +150,18 @@ class CmeList
    *
    * @return CampaignData[]
    */
-  public function campaigns($id)
+  public static function campaigns($id)
   {
+    $result = CmeClient::makeRequest(
+      'list/get_campaigns',
+      ['id' => $id]
+    );
+
+    $return = [];
+    foreach($result->campaigns as $campaign)
+    {
+      $return[] = CampaignData::hydrate((array)$campaign);
+    }
+    return $return;
   }
 }

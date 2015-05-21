@@ -5,7 +5,7 @@
  */
 namespace Cme\Sdk;
 
-class CmeClient
+abstract class CmeClient
 {
   /**
    * @var CmeClientConfig $_config
@@ -19,21 +19,21 @@ class CmeClient
    */
   private function __construct() { }
 
+  /**
+   * @param CmeClientConfig $config
+   */
   public static function init(CmeClientConfig $config)
   {
     self::$_config = $config;
   }
 
-  public static function Campaign()
-  {
-    return new CmeCampaign();
-  }
-
-  public static function EmailList()
-  {
-    return new CmeList();
-  }
-
+  /**
+   * @param string $endPoint
+   * @param array $data
+   *
+   * @return mixed
+   * @throws \Exception
+   */
   public static function makeRequest($endPoint, $data)
   {
     //we add to the data array this way so we override any other following
@@ -44,11 +44,19 @@ class CmeClient
     $data['access_token']  = self::$_config->accessToken;
 
     $response = \Requests::post(
-      CmeClient::config()->apiUrl . '/' . $endPoint,
+      self::$_config->apiUrl . '/' . $endPoint,
       [],
       $data
     );
 
-    return json_decode($response->body);
+    $response = json_decode($response->body);
+    if($response->status == 'success')
+    {
+      return $response->result;
+    }
+    else
+    {
+      throw new \Exception($response->error);
+    }
   }
 }

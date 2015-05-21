@@ -5,25 +5,30 @@
 
 namespace Cme\Sdk;
 
-use CmeKernel\Data\BrandData;
-use CmeKernel\Data\CampaignData;
+use CmeData\BrandData;
 
 class CmeBrand
 {
-
-  public function exists($id)
+  /**
+   * @param int $id
+   *
+   * @return mixed
+   * @throws \Exception
+   */
+  public static function exists($id)
   {
-
+    return CmeClient::makeRequest('brand/exists', ['id' => $id]);
   }
 
   /**
-   * @param $id
+   * @param int $id
    *
    * @return bool| BrandData
    */
-  public function get($id)
+  public static function get($id)
   {
-
+    $result = CmeClient::makeRequest('brand/get', ['id' => $id]);
+    return BrandData::hydrate((array)$result->brand);
   }
 
   /**
@@ -31,14 +36,19 @@ class CmeBrand
    *
    * @return BrandData[];
    */
-  public function all($includeDeleted = false)
+  public static function all($includeDeleted = false)
   {
+    $result = CmeClient::makeRequest(
+      'brand/all',
+      ['include_deleted' => $includeDeleted]
+    );
 
-  }
-
-  public function getColumns()
-  {
-
+    $return = [];
+    foreach($result->brands as $brand)
+    {
+      $return[] = BrandData::hydrate((array)$brand);
+    }
+    return $return;
   }
 
   /**
@@ -46,9 +56,10 @@ class CmeBrand
    *
    * @return bool|int $id
    */
-  public function create(BrandData $data)
+  public static function create(BrandData $data)
   {
-
+    $result = CmeClient::makeRequest('brand/create', $data->toArray());
+    return $result->brandId;
   }
 
   /**
@@ -56,9 +67,9 @@ class CmeBrand
    *
    * @return bool
    */
-  public function update(BrandData $data)
+  public static function update(BrandData $data)
   {
-
+    return CmeClient::makeRequest('brand/update', $data->toArray());
   }
 
   /**
@@ -66,10 +77,9 @@ class CmeBrand
    *
    * @return bool
    */
-  public function delete($id)
+  public static function delete($id)
   {
-
-    return true;
+    return CmeClient::makeRequest('brand/delete', ['id' => $id]);
   }
 
 
@@ -78,8 +88,18 @@ class CmeBrand
    *
    * @return CmeCampaign[]
    */
-  public function campaigns($id)
+  public static function campaigns($id)
   {
+    $result = CmeClient::makeRequest(
+      'brand/get_campaigns',
+      ['id' => $id]
+    );
 
+    $return = [];
+    foreach($result->campaigns as $campaign)
+    {
+      $return[] = CampaignData::hydrate((array)$campaign);
+    }
+    return $return;
   }
 }
