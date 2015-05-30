@@ -1,5 +1,5 @@
 {
-  "name":        "cme/cme-api",
+  "name":        "cme/cme-sdk",
   "description": "CME (Campaigns Made Easy) SDK",
   "version":     "1.0.0",
   "keywords":    [
