@@ -48,30 +48,45 @@ abstract class CmeClient
     $data['client_secret'] = self::$_config->secret;
     $data['access_token']  = self::_requestAccessToken();
 
+    $response = self::_makeRequest($endPoint, $data);
+
+    if($response->status == 'success')
+    {
+      return $response->result;
+    }
+    else
+    {
+      if(isset($response->error_code) && $response->error_code == 419)
+      {
+        self::$_accessToken = null;
+        self::makeRequest($endPoint, $data);
+      }
+      else
+      {
+        throw new \Exception($response->error);
+      }
+    }
+  }
+
+  /**
+   * @param $endPoint
+   * @param $data
+   *
+   * @return mixed|\Requests_Response
+   * @throws \Exception
+   */
+  private static function _makeRequest($endPoint, $data)
+  {
     $response = \Requests::post(
       self::$_config->apiUrl . '/' . $endPoint,
       [],
       $data
     );
+
     $response = json_decode($response->body);
     if($response)
     {
-      if($response->status == 'success')
-      {
-        return $response->result;
-      }
-      else
-      {
-        if(isset($response->error_code) && $response->error_code == 419)
-        {
-          self::$_accessToken = null;
-          self::makeRequest($endPoint, $data);
-        }
-        else
-        {
-          throw new \Exception($response->error);
-        }
-      }
+      return $response;
     }
     else
     {
@@ -79,16 +94,28 @@ abstract class CmeClient
     }
   }
 
+  /**
+   * @return string
+   * @throws \Exception
+   */
   private static function _requestAccessToken()
   {
     if(self::$_accessToken == null)
     {
-      $data               = [
+      $data = [
         'client_key'    => self::$_config->key,
         'client_secret' => self::$_config->secret
       ];
-      $result             = self::makeRequest('oauth/access_token', $data);
-      self::$_accessToken = $result->access_token;
+
+      $response = self::_makeRequest('oauth/access_token', $data);
+      if($response->status == 'success')
+      {
+        self::$_accessToken = $response->result->oauth->access_token;
+      }
+      else
+      {
+        throw new \Exception($response->error);
+      }
     }
 
     return self::$_accessToken;
