@@ -27,5 +27,5 @@
       "Cme\\Sdk\\": "src/"
     }
   },
-  "minimum-stability": "stable"
+  "minimum-stability": "dev"
 }
