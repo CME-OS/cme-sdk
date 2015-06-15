@@ -19,13 +19,12 @@
   "require":     {
     "php":              ">=5.4.0",
     "lusitanian/oauth": "v0.3.0",
-    "rmccue/requests":  "*",
+    "rmccue/requests":  "v1.6.0",
     "cme/cme-data":     "dev-master"
   },
   "autoload":    {
     "psr-4": {
       "Cme\\Sdk\\": "src/"
     }
-  },
-  "minimum-stability": "dev"
+  }
 }
