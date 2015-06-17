@@ -20,7 +20,7 @@
     "php":              ">=5.4.0",
     "lusitanian/oauth": "v0.3.0",
     "rmccue/requests":  "v1.6.0",
-    "cme/cme-data":     "dev-master"
+    "cme/cme-data":     "~1.0"
   },
   "autoload":    {
     "psr-4": {
